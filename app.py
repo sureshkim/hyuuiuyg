@@ -1,4 +1,5 @@
-from flask import Flask, Response
+import os
+from flask import Flask, Response, render_template, send_from_directory
 from typing import Type
 from constants import DEVELOPER_MODE, WEBHOOK_HOST
 from telegram_bots import TelegramBot
@@ -11,8 +12,16 @@ app = Flask(__name__)
 # The root route of your website
 # Returns content of index.html after rendering with Jinja2
 @app.route('/')
-def hello_world():  # put application's code here
-    return 'Hello World!'
+def index():
+    return render_template("index.html")
+
+
+# Returns the favicon for the website
+# Used in the root index.html page
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 # Keep Alive Route
