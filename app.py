@@ -4,6 +4,7 @@ from typing import Type
 from constants import DEVELOPER_MODE, WEBHOOK_HOST
 from telegram_bots import TelegramBot
 from telegram_bots.echo_bot import EchoTelegramBot
+from telegram_bots.gplinks_bypasser_telegram_bot import GpLinksBypasserTelegramBot
 
 # The Flask App object
 app = Flask(__name__)
@@ -42,7 +43,8 @@ def initialize_telegram_bots():
     # If you are in developer mode, then only the first bot will run
     # Only one bot is intended to be tested on developer mode
     telegram_bots: list[Type[TelegramBot]] = [
-        EchoTelegramBot
+        EchoTelegramBot,
+        GpLinksBypasserTelegramBot
     ]
 
     # Enable Bots for Development Server
