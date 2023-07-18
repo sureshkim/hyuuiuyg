@@ -10,10 +10,17 @@ import pytz
 # Asia/Kolkata Timezone for logging time
 TIMEZONE = pytz.timezone('Asia/Kolkata')
 
+
 # Developer Mode (for Server)
-DEVELOPER_MODE: bool = (os.getenv('DEVELOPER_MODE', 'False').lower() in ['true', '1', 't', 'y'])
+def in_developer_mode() -> bool:
+    return os.getenv('DEVELOPER_MODE', 'False').lower() in ['true', '1', 't', 'y']
+
+
 DEVELOPER_TELEGRAM_USERNAME: str = os.getenv('DEVELOPER_NAME', 'itsyourap')
 DEVELOPER_TELEGRAM_LINK: str = os.getenv('DEVELOPER_TELEGRAM', 'https://t.me/itsyourap')
+DEVELOPER_TELEGRAM_CHANNEL_ID: str = os.getenv('DEVELOPER_TELEGRAM_CHANNEL_ID')
+DEVELOPER_TELEGRAM_CHANNEL_LINK: str = os.getenv('DEVELOPER_TELEGRAM_CHANNEL_LINK')
+DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED: str = DEVELOPER_TELEGRAM_CHANNEL_LINK.replace("_", "\\_")
 
 # Webhook Constants
 WEBHOOK_HOST = os.getenv('WEBSITE_HOSTNAME')  # Azure Web App has it autoconfigured to its hostname

@@ -8,10 +8,12 @@ from bs4 import BeautifulSoup
 from flask import Flask, request, abort, Response
 from telebot import TeleBot
 from telebot.types import Message, Update
-from constants import WEBHOOK_URL_BASE, DEVELOPER_MODE, DEVELOPER_TELEGRAM_USERNAME, DEVELOPER_TELEGRAM_LINK, timetz
+from telebot.apihelper import ApiTelegramException
+from constants import WEBHOOK_URL_BASE, in_developer_mode, DEVELOPER_TELEGRAM_USERNAME, DEVELOPER_TELEGRAM_LINK, \
+    DEVELOPER_TELEGRAM_CHANNEL_ID, DEVELOPER_TELEGRAM_CHANNEL_LINK, DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED,\
+    timetz, DEFAULT_LOG_PATH, create_directories
 from telegram_bots import TelegramBot
 import logging.handlers
-from constants import DEFAULT_LOG_PATH, create_directories
 from concurrent_log_handler import ConcurrentTimedRotatingFileHandler
 
 # Changes Default Logging Timezone
@@ -55,11 +57,13 @@ WEBHOOK_URL = WEBHOOK_URL_BASE + WEB_ROUTE
 # Get from https://t.me/BotFather
 # Token is saved as an environment variable
 # Go to Azure WebApp > Configuration > Application Settings and define your environmental variables
-BOT_TOKEN = os.environ.get('ITSYOURAP_GPLINK_BYPASSER_TELEGRAM_BOT_TOKEN', os.environ.get('DUMMY_TELEGRAM_BOT_TOKEN'))
+BOT_TOKEN = os.environ.get('ITSYOURAP_GPLINK_BYPASSER_TELEGRAM_BOT_TOKEN')
 
 # The TeleBot object of the pyTelegramBotAPI library
 # This handles everything regarding the bot functions
-bot = TeleBot(BOT_TOKEN)
+bot: TeleBot | None = None
+if BOT_TOKEN is not None:
+    bot = TeleBot(BOT_TOKEN)
 
 
 # GpLinksBypasserTelegramBot class which extends the TelegramBot class
@@ -68,17 +72,19 @@ bot = TeleBot(BOT_TOKEN)
 class GpLinksBypasserTelegramBot(TelegramBot, ABC):
     @staticmethod
     def register_route(flask_app: Flask):
-        logger.debug("Adding Route %s", WEB_ROUTE)
+        if bot is not None:
+            logger.debug("Adding Route %s", WEB_ROUTE)
 
-        # Add the URL route rule to the Flask Server and associate trigger function on request
-        flask_app.add_url_rule(WEB_ROUTE, methods=['POST'], view_func=gp_link_bypass_process_webhook_trigger)
+            # Add the URL route rule to the Flask Server and associate trigger function on request
+            flask_app.add_url_rule(WEB_ROUTE, methods=['POST'], view_func=gp_link_bypass_process_webhook_trigger)
 
     @staticmethod
     def register_webhook():
-        logger.debug("Registering Webhook at %s", WEBHOOK_URL)
+        if bot is not None:
+            logger.debug("Registering Webhook at %s", WEBHOOK_URL)
 
-        # Register Webhook at Telegram for the Telegram Bot
-        set_webhook(WEBHOOK_URL)
+            # Register Webhook at Telegram for the Telegram Bot
+            set_webhook(WEBHOOK_URL)
 
 
 def set_webhook(url):
@@ -118,10 +124,11 @@ def send_welcome(message: Message):
            "👌 I can bypass gplinks.co URLs in few seconds\n\n" \
            "😋 Just send me an URL in https://gplinks.co/xxx format\n\n" \
            "🧑🏻‍💻 Created by [@itsyourap](https://t.me/itsyourap)\n" \
-           "🔎 Source Code: [Click Here](https://github.com/itsyourap/azure-flask-telegram-bots)"
+           "🔎 GitHub: [Click Here](https://github.com/itsyourap)\n" \
+           "🎁 Donate: [UPI](upi://pay?pn=Ankan%20Pal&tn=Donation%20Via%20Telegram%20Bot&pa=itsyourap@oksbi&cu=INR)"
 
     # If this server is marked as Development Server then only reply to developer (owner)
-    if DEVELOPER_MODE:
+    if in_developer_mode():
         text = text + f"\n\n" \
                       "⚙️ Currently I am in Developer Mode\n" \
                       f"🫡 I will only respond to [@{DEVELOPER_TELEGRAM_USERNAME}]({DEVELOPER_TELEGRAM_LINK})"
@@ -138,7 +145,7 @@ def send_welcome(message: Message):
 @bot.message_handler(func=lambda msg: True)
 def echo_all(message: Message):
     # If this server is marked as Development Server then only reply to developer (owner)
-    if DEVELOPER_MODE:
+    if in_developer_mode():
         # Message Sender isn't developer (owner)
         if message.chat.username != DEVELOPER_TELEGRAM_USERNAME:
             # Inform that bot only replies to developer (owner) as a reply to the sender's message
@@ -149,6 +156,30 @@ def echo_all(message: Message):
 
             # Log request made by sender other than developer for analytics purposes
             logger.info("Received Message From Non-Dev %s", str({'message': message.json}))
+            return
+
+    # Check if Developer's Telegram Channel is defined in constants.py
+    # If yes, then check if user is subscribed to the channel
+    # If user is not subscribed to the channel, ask them to subscribe for the bot to work for them
+    # If the user is already subscribed to the channel, then do the actual purpose of the bot
+    if DEVELOPER_TELEGRAM_CHANNEL_ID is not None:
+        try:
+            # Check if user is already subscribed to the Developer's Telegram Channel
+            # For this to work, you need to add this bot as an Admin of the Channel
+            bot.get_chat_member(chat_id=DEVELOPER_TELEGRAM_CHANNEL_ID, user_id=message.chat.id)
+
+            # User is already subscribed to the Developer's Telegram Channel
+            pass
+        except ApiTelegramException:
+            # User is not subscribed to the Developer's Telegram Channel
+            # Ask them to subscribe
+            text = f"**Join [this channel]({DEVELOPER_TELEGRAM_CHANNEL_LINK}) to use this bot**\n" \
+                   f"{DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED}"
+            bot.send_message(message.chat.id, text=text, reply_to_message_id=message.message_id,
+                             disable_web_page_preview=True, parse_mode='Markdown')
+
+            # Log the incoming message for analytics purposes
+            logger.info("Received Message from unsubscribed user %s", str({'message': message.json}))
             return
 
     # Inform the sender that bot is online and has received their message

@@ -1,7 +1,7 @@
 import os
 from flask import Flask, Response, render_template, send_from_directory
 from typing import Type
-from constants import DEVELOPER_MODE, WEBHOOK_HOST
+from constants import in_developer_mode, WEBHOOK_HOST
 from telegram_bots import TelegramBot
 from telegram_bots.echo_bot import EchoTelegramBot
 from telegram_bots.gplinks_bypasser_telegram_bot import GpLinksBypasserTelegramBot
@@ -43,15 +43,9 @@ def initialize_telegram_bots():
     # If you are in developer mode, then only the first bot will run
     # Only one bot is intended to be tested on developer mode
     telegram_bots: list[Type[TelegramBot]] = [
-        EchoTelegramBot,
-        GpLinksBypasserTelegramBot
+        GpLinksBypasserTelegramBot,
+        EchoTelegramBot
     ]
-
-    # Enable Bots for Development Server
-    if DEVELOPER_MODE:
-        # Only One Bot Should Be Present on Dev Server
-        # Deletes all the Telegram Bots in the array except the first one
-        del telegram_bots[1:]
 
     # Loop through all the bots and initialize them
     for telegram_bot in telegram_bots:
