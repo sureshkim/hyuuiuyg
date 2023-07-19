@@ -123,9 +123,9 @@ def send_welcome(message: Message):
     text = f"😃 **Hi [{message.chat.first_name}](https://t.me/{message.chat.username}),**\n\n" \
            "👌 I can bypass gplinks.co URLs in few seconds\n\n" \
            "😋 Just send me an URL in https://gplinks.co/xxx format\n\n" \
-           "🧑🏻‍💻 Created by [@itsyourap](https://t.me/itsyourap)\n" \
-           "🔎 GitHub: [Click Here](https://github.com/itsyourap)\n" \
-           "🎁 Donate: UPI - `itsyourap@oksbi`"
+           "🧑🏻‍💻 Created by [@Anonyadminp](https://t.me/Anonyadmin)\n" \
+           "🔎 GitHub: [Click Here](https://github.com/)\n" \
+           "🎁 Donate: UPI - `none`"
 
     # If this server is marked as Development Server then only reply to developer (owner)
     if in_developer_mode():
