@@ -116,9 +116,36 @@ def gp_link_bypass_process_webhook_trigger():
         abort(403)
 
 
+
+# Define a global variable to keep track of whether the bot is in subscriber mode or not
+subscriber_mode = True  # Set this to False if you want to disable subscriber mode
+
+def is_subscribed(chat_id):
+    if DEVELOPER_TELEGRAM_CHANNEL_ID is not None:
+        try:
+            # Check if the user is subscribed to the Developer's Telegram Channel
+            # For this to work, you need to add this bot as an Admin of the Channel
+            bot.get_chat_member(chat_id=DEVELOPER_TELEGRAM_CHANNEL_ID, user_id=chat_id)
+            return True
+        except ApiTelegramException:
+            return False
+    return True  # Return True if subscriber mode is disabled
+
+# ...
+
 # Handle /start and /help messages sent to the Telegram bot
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message: Message):
+    # If subscriber mode is enabled and the user is not subscribed
+    if subscriber_mode and not is_subscribed(message.chat.id):
+        # User is not subscribed to the Developer's Telegram Channel
+        # Ask them to subscribe
+        text = f"**Join [this channel]({DEVELOPER_TELEGRAM_CHANNEL_LINK}) to use this bot**\n" \
+               f"{DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED}"
+        bot.send_message(message.chat.id, text=text, reply_to_message_id=message.message_id,
+                         disable_web_page_preview=True, parse_mode='Markdown')
+        return
+
     # Reply message to /start and /help
     text = f"😃 **Hi [{message.chat.first_name}](https://t.me/{message.chat.username}),**\n\n" \
            "👌 I can bypass gplinks.co URLs in few seconds\n\n" \
@@ -126,6 +153,20 @@ def send_welcome(message: Message):
            "🧑🏻‍💻 Created by [@Anonyadminp](https://t.me/Anonyadmin)\n" \
            "🔎 GitHub: [Click Here](https://github.com/)\n" \
            "🎁 Donate: UPI - `none`"
+
+    # If this server is marked as Development Server then only reply to developer (owner)
+    if in_developer_mode():
+        text = text + f"\n\n" \
+                      "⚙️ Currently I am in Developer Mode\n" \
+                      f"🫡 I will only respond to [@{DEVELOPER_TELEGRAM_USERNAME}]({DEVELOPER_TELEGRAM_LINK})"
+
+    # Send the message as a reply to the sender's message
+    bot.send_message(message.chat.id, text=text, reply_to_message_id=message.message_id, parse_mode='Markdown',
+                     disable_web_page_preview=True)
+
+    # Log the incoming message for analytics purposes
+    logger.info("Received /start through %s", message.json)
+"
 
     # If this server is marked as Development Server then only reply to developer (owner)
     if in_developer_mode():
