@@ -10,7 +10,7 @@ from telebot import TeleBot
 from telebot.types import Message, Update
 from telebot.apihelper import ApiTelegramException
 from constants import WEBHOOK_URL_BASE, in_developer_mode, DEVELOPER_TELEGRAM_USERNAME, DEVELOPER_TELEGRAM_LINK, \
-    DEVELOPER_TELEGRAM_CHANNEL_ID, DEVELOPER_TELEGRAM_CHANNEL_LINK, DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED,\
+    DEVELOPER_TELEGRAM_CHANNEL_ID, DEVELOPER_TELEGRAM_CHANNEL_LINK, DEVELOPER_TELEGRAM_CHANNEL_LINK_ESCAPED, \
     timetz, DEFAULT_LOG_PATH, create_directories
 from telegram_bots import TelegramBot
 import logging.handlers
@@ -207,11 +207,15 @@ def gplinks_bypass(url: str):
         vid = client.get(url, allow_redirects=False).headers["Location"].split("=")[-1]
 
         # Convince GPLink that visitor has already visited the 3rd ads page and clicked continue
-        client.post(url="https://gplinks.in/track/conversion.php",
-                    data={"update": True, "visitor_id": vid, "status": 3})
+        for i in range(2):
+            client.post(url="https://gplinks.in/track/data.php",
+                        data={"request": "addVisitorImps", "vid": vid})
+
+        client.post(url="https://gplinks.in/track/data.php",
+                    data={"request": "setVisitor", "vid": vid, "status": 3})
 
         # Request to get the final GPLink verification page
-        go_url = f"{url}/?{vid}"
+        go_url = f"{url}/?vid={vid}"
         response = client.get(go_url, allow_redirects=False)
         soup = BeautifulSoup(response.content, "html.parser")
 
@@ -224,6 +228,9 @@ def gplinks_bypass(url: str):
                 inputs = form_elem.find_all("input")
                 for input_elem in inputs:
                     data[input_elem.get('name')] = input_elem.get('value')
+
+        # GPLinks doesn't provide the actual link if the requests are too fast
+        time.sleep(1)
 
         # Final request to get the actual bypassed link
         bypassed_url = client.post(url="https://gplinks.co/links/go",
