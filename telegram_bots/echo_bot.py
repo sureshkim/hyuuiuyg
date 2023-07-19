@@ -121,7 +121,7 @@ def send_welcome(message: Message):
            "👌 I can echo your text messages\n\n" \
            "😋 Just send me a text and I will send it back to you\n\n" \
            "🔎 GitHub: [Click Here](https://github.com/itsyourap)\n" \
-           "🎁 Donate: [UPI](upi://pay?pn=Ankan%20Pal&tn=Donation%20Via%20Telegram%20Bot&pa=itsyourap@oksbi&cu=INR)"
+           "🎁 Donate: UPI - itsyourap@oksbi"
 
     # If this server is marked as Development Server then only reply to developer (owner)
     if in_developer_mode():

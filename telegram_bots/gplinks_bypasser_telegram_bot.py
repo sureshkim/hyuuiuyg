@@ -125,7 +125,7 @@ def send_welcome(message: Message):
            "😋 Just send me an URL in https://gplinks.co/xxx format\n\n" \
            "🧑🏻‍💻 Created by [@itsyourap](https://t.me/itsyourap)\n" \
            "🔎 GitHub: [Click Here](https://github.com/itsyourap)\n" \
-           "🎁 Donate: [UPI](upi://pay?pn=Ankan%20Pal&tn=Donation%20Via%20Telegram%20Bot&pa=itsyourap@oksbi&cu=INR)"
+           "🎁 Donate: UPI - itsyourap@oksbi"
 
     # If this server is marked as Development Server then only reply to developer (owner)
     if in_developer_mode():
