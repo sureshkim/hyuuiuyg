@@ -221,7 +221,7 @@ def gplinks_bypass(url: str):
         vid = client.get(url, allow_redirects=False).headers["Location"].split("=")[-1]
 
         # Convince GPLink that visitor has already visited the 3rd ads page and clicked continue
-        for i in range(2):
+        for i in range(3):
             client.post(url="https://gplinks.in/track/data.php",
                         data={"request": "addVisitorImps", "vid": vid})
 
