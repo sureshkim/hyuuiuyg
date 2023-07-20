@@ -123,7 +123,7 @@ def send_welcome(message: Message):
     text = f"😃 **Hi [{message.chat.first_name}](https://t.me/{message.chat.username}),**\n\n" \
            "👌 I can bypass gplinks.co URLs in few seconds\n\n" \
            "😋 Just send me an URL in https://gplinks.co/xxx format\n\n" \
-           "🧑🏻‍💻 Created by [@itsyourap](https://t.me/Anonyadminp)\n" \
+           "🧑🏻‍💻 Created by [@Anonyadmin](https://t.me/Anonyadmin)\n" \
            "🔎 GitHub: [Click Here](nun)\n" \
            "🎁 Donate: UPI - `nun`"
 
